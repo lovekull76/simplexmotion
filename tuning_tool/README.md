@@ -31,10 +31,16 @@ anywhere else:
 
 ```
 cd simplexmotion   # or wherever you cloned it, e.g. /home/pi/simplexmotion-repo
-uvicorn tuning_tool.app:app --host 0.0.0.0 --port 8000
+uvicorn tuning_tool.app:app --host 0.0.0.0 --port 8000 --timeout-graceful-shutdown 3
 ```
 
 Open `http://<host>:8000/` from a browser anywhere on the LAN.
+
+`--timeout-graceful-shutdown 3` matters: with a browser tab open on the live
+chart, the WebSocket connection stays open, and uvicorn's default graceful
+shutdown then waits forever on a single Ctrl+C ("Waiting for background tasks
+to complete."). This flag forces it to exit after 3 seconds instead of hanging
+(or needing a second Ctrl+C to force-quit).
 
 ## Notes
 

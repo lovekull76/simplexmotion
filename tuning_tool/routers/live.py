@@ -15,6 +15,19 @@ router = APIRouter(tags=["live"])
 
 LIVE_POLL_INTERVAL_S = 0.1
 
+# Tracked so app shutdown can close them explicitly -- an open WebSocket
+# (e.g. a browser tab left on the live chart) otherwise keeps uvicorn's
+# graceful shutdown waiting forever for a connection that never closes itself.
+_active_websockets: set[WebSocket] = set()
+
+
+async def close_all_websockets() -> None:
+    for ws in list(_active_websockets):
+        try:
+            await ws.close()
+        except Exception:
+            pass
+
 
 def _snapshot() -> dict:
     motor = state.require_motor()
@@ -40,6 +53,7 @@ def get_live():
 @router.websocket("/ws/live")
 async def ws_live(websocket: WebSocket):
     await websocket.accept()
+    _active_websockets.add(websocket)
     try:
         while True:
             if state.connected:
@@ -50,3 +64,5 @@ async def ws_live(websocket: WebSocket):
             await asyncio.sleep(LIVE_POLL_INTERVAL_S)
     except WebSocketDisconnect:
         pass
+    finally:
+        _active_websockets.discard(websocket)

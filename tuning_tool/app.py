@@ -2,7 +2,12 @@
 
 Run with:
 
-    uvicorn tuning_tool.app:app --host 0.0.0.0 --port 8000
+    uvicorn tuning_tool.app:app --host 0.0.0.0 --port 8000 --timeout-graceful-shutdown 3
+
+The --timeout-graceful-shutdown flag matters: with a browser tab open on the
+live chart, the WebSocket connection never closes on its own, and uvicorn's
+default graceful shutdown waits forever for it on a single Ctrl+C. This forces
+an exit after 3s instead.
 
 Requires exclusive access to the motor's serial port -- stop the fermenter
 service (or whatever else owns it) first. See tuning_tool/README.md.
@@ -37,6 +42,7 @@ def index():
 
 
 @app.on_event("shutdown")
-def _shutdown():
+async def _shutdown():
+    await live.close_all_websockets()
     if state.connected:
         state.disconnect()
