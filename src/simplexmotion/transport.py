@@ -1,6 +1,6 @@
-"""Transportlager: allt som pratar Modbus RTU in/ut, ingen tolkning av vad
-registren betyder. Se :class:`Transport` för det protokoll konsumenter kan
-implementera för egen hårdvara.
+"""Transport layer: everything that speaks Modbus RTU in/out, no
+interpretation of what the registers mean. See :class:`Transport` for the
+protocol consumers can implement for their own hardware.
 """
 
 from __future__ import annotations
@@ -14,10 +14,10 @@ from . import registers as regs
 
 
 class Transport(Protocol):
-    """Minimalt protokoll en Modbus-transport måste uppfylla.
+    """Minimal protocol a Modbus transport must satisfy.
 
-    ``unit`` (slavadressen) hör till anropet, inte till transportobjektet,
-    eftersom flera motorer kan dela samma buss.
+    ``unit`` (the slave address) belongs to the call, not to the transport
+    object, since several motors may share the same bus.
     """
 
     def read_registers(self, address: int, count: int, unit: int) -> list[int]: ...
@@ -28,11 +28,12 @@ class Transport(Protocol):
 
 
 class PymodbusTransport:
-    """Standardtransport, baserad på ``pymodbus`` (FC03 / FC06 / FC16).
+    """Default transport, based on ``pymodbus`` (FC03 / FC06 / FC16).
 
-    Äger den seriella porten. En instans delas mellan alla :class:`~simplexmotion.motor.Motor`
-    på samma buss -- ett internt lås serialiserar åtkomsten, eftersom Modbus RTU
-    är half duplex och inte tål överlappande transaktioner.
+    Owns the serial port. A single instance is shared between all
+    :class:`~simplexmotion.motor.Motor` objects on the same bus -- an
+    internal lock serializes access, since Modbus RTU is half duplex and
+    cannot tolerate overlapping transactions.
     """
 
     def __init__(
@@ -56,15 +57,15 @@ class PymodbusTransport:
             timeout=timeout,
         )
         if not self._client.connect():
-            raise ConnectionError(f"Kunde inte öppna {port}")
+            raise ConnectionError(f"Could not open {port}")
 
     def close(self) -> None:
         self._client.close()
 
     def open(self) -> None:
-        """Återöppna porten efter ett :meth:`close`."""
+        """Reopen the port after a :meth:`close`."""
         if not self._client.connect():
-            raise ConnectionError("Kunde inte återöppna porten")
+            raise ConnectionError("Could not reopen the port")
 
     def read_registers(self, address: int, count: int, unit: int) -> list[int]:
         with self._lock:
@@ -88,10 +89,10 @@ class PymodbusTransport:
 
 
 class FakeTransport:
-    """Spelar upp/håller register i minnet -- ingen ansluten motor krävs.
+    """Plays back/holds registers in memory -- no connected motor required.
 
-    Användbar för utveckling och test. Flera ``unit``-adresser kan seedas
-    oberoende av varandra i samma instans.
+    Useful for development and testing. Several ``unit`` addresses can be
+    seeded independently within the same instance.
     """
 
     def __init__(self) -> None:
@@ -101,7 +102,7 @@ class FakeTransport:
         return self._registers.setdefault(unit, {})
 
     def seed(self, values: dict[int, int], unit: int = 1) -> None:
-        """Sätt rådata direkt, adress -> 16-bitars ord (redan 0-baserad adress)."""
+        """Set raw data directly, address -> 16-bit word (already 0-based address)."""
         bank = self._bank(unit)
         for address, value in values.items():
             bank[address] = regs.to_unsigned16(value)
@@ -120,12 +121,12 @@ class FakeTransport:
 
     @classmethod
     def from_config_csv(cls, path: str | Path, unit: int = 1) -> "FakeTransport":
-        """Seeda en instans från en registerdump i Simplex Motion Tools format
-        (``#modbus_register;register_name;data_type;value``, manual-numrering).
+        """Seed an instance from a register dump in Simplex Motion Tool's format
+        (``#modbus_register;register_name;data_type;value``, manual numbering).
 
-        int32-fält skrivs som MSB/LSB-par (manual_adress, manual_adress + 1).
-        Strängfält hanteras bara för de fält vi känner längden på
-        (ModelName, SerialNumber) -- övriga sträng-rader hoppas över.
+        int32 fields are written as MSB/LSB pairs (manual_address, manual_address + 1).
+        String fields are only handled for the fields whose length we know
+        (ModelName, SerialNumber) -- other string rows are skipped.
         """
         transport = cls()
         bank: dict[int, int] = {}
@@ -163,10 +164,10 @@ class FakeTransport:
 
 
 def _encode_string(text: str, num_registers: int) -> list[int]:
-    """Packa en ASCII-sträng till 16-bitars ord, 2 tecken per register.
-    Verifierat mot riktig SE010A-hårdvara: första tecknet i paret ligger i
-    lågbyte, andra i högbyte (dvs. omvänt mot vad man annars förväntar sig
-    av Modbus-strängar)."""
+    """Pack an ASCII string into 16-bit words, 2 characters per register.
+    Verified against real SE010A hardware: the first character of each pair
+    sits in the low byte, the second in the high byte (i.e. the opposite of
+    what you'd otherwise expect from Modbus strings)."""
     data = text.encode("ascii", errors="replace")
     data = data.ljust(num_registers * 2, b"\x00")
     return [

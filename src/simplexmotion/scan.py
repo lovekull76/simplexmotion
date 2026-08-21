@@ -1,4 +1,4 @@
-"""Busgenomsökning: hitta vilka SimplexMotion-motorer som svarar på en buss."""
+"""Bus scanning: find which SimplexMotion motors respond on a bus."""
 
 from __future__ import annotations
 
@@ -16,11 +16,12 @@ class MotorInfo:
 
 
 def scan_bus(transport: Transport, addresses: range = range(1, 32)) -> list[MotorInfo]:
-    """Läs ModelName/SerialNumber på varje adress i ``addresses``.
+    """Read ModelName/SerialNumber at every address in ``addresses``.
 
-    Adresser som inte svarar (timeout, felaktigt svar) hoppas tyst över --
-    en full genomsökning av 1-31 innebär redan värsta fall en lång väntan om
-    transporten har hög timeout, så håll timeouten kort på transportnivå.
+    Addresses that don't respond (timeout, malformed response) are silently
+    skipped -- a full scan of 1-31 is already a long wait in the worst case
+    if the transport has a high timeout, so keep the timeout short at the
+    transport level.
     """
     found: list[MotorInfo] = []
     for address in addresses:

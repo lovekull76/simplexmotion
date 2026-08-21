@@ -59,9 +59,10 @@ def test_store_and_reload_write_mode_register(motor):
 
 
 def test_scaling_matches_recorded_100rpm_reference_data():
-    """Läser en av recorderns testfiler och jämför mot referensvärdena i handover-dokumentet.
-    Validerar bara att dataformatet och skalningen (samma faktor som Motor.motor_speed_rpm
-    använder) ger rimliga värden -- ingen recorder-registerlogik inblandad."""
+    """Reads one of the recorder's test files and compares it against known reference
+    values. Only validates that the data format and scaling (the same factor
+    Motor.motor_speed_rpm uses) produce sane values -- no recorder register logic
+    involved."""
     from simplexmotion.registers import raw_to_rpm
 
     path = DATA_DIR / "100rpm.csv"

@@ -1,4 +1,4 @@
-"""API-lagret: det som faktiskt används av konsumentkod.
+"""The API layer: what consumer code actually uses.
 
     motor = Motor(transport, address=1)
     motor.mode = Mode.SPEED_RAMP
@@ -18,7 +18,7 @@ from .transport import Transport, decode_string
 
 @dataclass
 class Pid:
-    """Vy över PID/reglerparametrarna (register 300-309)."""
+    """View over the PID/control parameters (registers 300-309)."""
 
     _motor: "Motor"
 
@@ -96,10 +96,11 @@ class Pid:
 
 
 class Motor:
-    """En SimplexMotion-servo på en given Modbus-adress.
+    """A SimplexMotion servo at a given Modbus address.
 
-    Transporten äger porten (och, för :class:`~simplexmotion.transport.PymodbusTransport`,
-    serialiseringen mellan flera motorer). ``Motor`` äger bara adressen.
+    The transport owns the port (and, for
+    :class:`~simplexmotion.transport.PymodbusTransport`, the serialization
+    between several motors). ``Motor`` only owns the address.
     """
 
     def __init__(self, transport: Transport, address: int) -> None:
@@ -126,7 +127,7 @@ class Motor:
         words = self.transport.read_registers(base_register, length, self.address)
         return decode_string(words)
 
-    # -- Identitet --------------------------------------------------------
+    # -- Identity -----------------------------------------------------------
 
     @property
     def model_name(self) -> str:
@@ -144,7 +145,7 @@ class Motor:
     def ver_hardware(self) -> int:
         return self._read(regs.VER_HARDWARE, signed=False)
 
-    # -- Styrning -----------------------------------------------------------
+    # -- Control --------------------------------------------------------------
 
     @property
     def mode(self) -> Mode:
@@ -218,7 +219,7 @@ class Motor:
     def torque_stop(self, mnm: int) -> None:
         self._write(regs.MOTOR_TORQUE_STOP, mnm)
 
-    # -- Mätvärden (skrivskyddade) -------------------------------------------
+    # -- Measurements (read-only) -----------------------------------------------
 
     @property
     def supply_voltage(self) -> float:
@@ -252,7 +253,7 @@ class Motor:
     def ramp_speed_rpm(self) -> float:
         return regs.raw_to_rpm(self._read(regs.RAMP_SPEED))
 
-    # -- Status ---------------------------------------------------------------
+    # -- Status -----------------------------------------------------------------
 
     @property
     def status(self) -> Status:
@@ -262,16 +263,16 @@ class Motor:
     def status_latched(self) -> Status:
         return Status(self._read(regs.STATUS_LATCHED, signed=False))
 
-    # -- Icke-flyktigt minne ---------------------------------------------------
+    # -- Non-volatile memory -----------------------------------------------------
 
     def store(self) -> None:
-        """Spara nuvarande registervärden till icke-flyktigt minne (Mode = 9)."""
+        """Save the current register values to non-volatile memory (Mode = 9)."""
         self._write(regs.MODE, int(Mode.STORE))
 
     def reload(self) -> None:
-        """Kasta osparade ändringar, läs tillbaka sparade värden (Mode = 8)."""
+        """Discard unsaved changes, read back the saved values (Mode = 8)."""
         self._write(regs.MODE, int(Mode.RELOAD))
 
     def factory_reset(self) -> None:
-        """Återställ allt inklusive adress och kommunikationsinställningar (Mode = 7)."""
+        """Reset everything including address and communication settings (Mode = 7)."""
         self._write(regs.MODE, int(Mode.FACTORY))

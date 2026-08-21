@@ -1,9 +1,9 @@
-"""Registeradresser och skalningar för SimplexMotion SE010A.
+"""Register addresses and scalings for the SimplexMotion SE010A.
 
-Alla adresser nedan är redan -1-justerade relativt manualens numrering
-(manualen räknar 1-baserat, Modbus-protokollet 0-baserat). Använd dessa
-konstanter direkt mot en :class:`~simplexmotion.transport.Transport` --
-ingen kod utanför den här modulen ska behöva tänka på offsetten.
+All addresses below are already -1-adjusted relative to the manual's
+numbering (the manual counts from 1, the Modbus protocol from 0). Use
+these constants directly against a :class:`~simplexmotion.transport.Transport`
+-- no code outside this module should need to think about the offset.
 """
 
 from __future__ import annotations
@@ -11,34 +11,34 @@ from __future__ import annotations
 from enum import IntEnum
 
 # ---------------------------------------------------------------------------
-# Identitet
+# Identity
 # ---------------------------------------------------------------------------
 
 VER_PARAMETERS = 0
 VER_FIRMWARE = 1
 VER_HARDWARE = 2
-MODEL_NAME = 9          # 10 register, 20-teckens sträng
+MODEL_NAME = 9          # 10 registers, 20-character string
 MODEL_NAME_LENGTH = 10
-SERIAL_NUMBER = 19      # 10 register, 20-teckens sträng
+SERIAL_NUMBER = 19      # 10 registers, 20-character string
 SERIAL_NUMBER_LENGTH = 10
 ADDRESS = 49
 
 # ---------------------------------------------------------------------------
-# Mätvärden
+# Measurements
 # ---------------------------------------------------------------------------
 
-SUPPLY = 99                # 0,01 V
-TEMP_ELECTRONICS = 100     # 0,01 degC
-TEMP_MOTOR = 101           # 0,01 degC
-MOTOR_POSITION_MSB = 199   # int32, 4096 per varv
+SUPPLY = 99                # 0.01 V
+TEMP_ELECTRONICS = 100     # 0.01 degC
+TEMP_MOTOR = 101           # 0.01 degC
+MOTOR_POSITION_MSB = 199   # int32, 4096 per revolution
 MOTOR_SPEED = 201          # rpm = raw * SPEED_SCALE
 MOTOR_TORQUE = 202         # mNm, int16
 REG_ERROR = 307            # int16, +-8192
 REG_OUTPUT = 309           # int16
-RAMP_SPEED = 349           # samma skalning som MOTOR_SPEED
+RAMP_SPEED = 349           # same scaling as MOTOR_SPEED
 
 # ---------------------------------------------------------------------------
-# Parametrar
+# Parameters
 # ---------------------------------------------------------------------------
 
 SPEED_FILTER = 120
@@ -53,7 +53,7 @@ REG_FRICTION = 304
 REG_INERTIA = 305
 REG_DEADBAND = 306
 REG_ERROR_MAX = 308
-RAMP_SPEED_MAX = 350       # samma skalning som TARGET_INPUT
+RAMP_SPEED_MAX = 350       # same scaling as TARGET_INPUT
 RAMP_ACC_MAX = 352         # rpm/s * ACC_SCALE
 RAMP_DEC_MAX = 353         # rpm/s * ACC_SCALE
 MODE = 399
@@ -69,7 +69,7 @@ ROTARY_STOP_MSB = 471      # int32
 TIME_MSB = 419             # int32
 
 # ---------------------------------------------------------------------------
-# Status och skydd
+# Status and protection
 # ---------------------------------------------------------------------------
 
 STATUS_FILTER = 408
@@ -80,8 +80,8 @@ MASK_SHUTDOWN = 413
 ERROR = 414
 
 # ---------------------------------------------------------------------------
-# Recorder (huvuden -- själva dataarrayerna 1000-4499 hanteras inte av
-# kärn-API:t, det är en fråga för tuning-verktyget)
+# Recorder (headers only -- the data arrays themselves, 1000-4499, aren't
+# handled by the core API; that's a job for the tuning tool)
 # ---------------------------------------------------------------------------
 
 REC_STATE = 899
@@ -89,12 +89,12 @@ REC_TRIGGER = 900
 REC_PERIOD = 901
 REC_PRECEDING = 902
 REC_OFFSET = 903
-REC_REGISTER = 904  # 4 register, REC_REGISTER..REC_REGISTER+3
+REC_REGISTER = 904  # 4 registers, REC_REGISTER..REC_REGISTER+3
 
 # ---------------------------------------------------------------------------
-# 32-bitars registerpar som kräver MSB/LSB-hantering (adresser enligt manualen,
-# se docstring i toppen -- listan används av transport-lagret för att veta
-# vilka fält som är dubbelregister).
+# 32-bit register pairs that need MSB/LSB handling (addresses per the manual,
+# see the docstring at the top -- used by the transport layer to know which
+# fields are double registers).
 # ---------------------------------------------------------------------------
 
 LONG_REGISTER_PAIRS = frozenset(
@@ -113,7 +113,7 @@ LONG_REGISTER_PAIRS = frozenset(
 
 
 class Mode(IntEnum):
-    """Värden för MODE-registret (399 / manual 400)."""
+    """Values for the MODE register (399 / manual 400)."""
 
     OFF = 0
     RESET = 1
@@ -143,7 +143,7 @@ _STATUS_BITS = {
 
 
 class Status:
-    """Avkodad vy över ett Status/StatusLatched-registervärde."""
+    """Decoded view over a Status/StatusLatched register value."""
 
     __slots__ = ("raw",)
 
@@ -163,11 +163,11 @@ class Status:
 
 
 # ---------------------------------------------------------------------------
-# Skalningar
+# Scalings
 # ---------------------------------------------------------------------------
 
-# rpm = MotorSpeed-raw * SPEED_SCALE  (samma faktor gäller RampSpeed)
-# raw  = rpm / SPEED_SCALE            (samma faktor gäller TargetInput/RampSpeedMax)
+# rpm = MotorSpeed raw * SPEED_SCALE  (same factor applies to RampSpeed)
+# raw  = rpm / SPEED_SCALE            (same factor applies to TargetInput/RampSpeedMax)
 SPEED_SCALE = 0.234375  # = 16 * 60 / 4096
 
 # raw (RampAccMax / RampDecMax) = rpm_per_s * ACC_SCALE
@@ -200,12 +200,12 @@ def to_unsigned16(value: int) -> int:
 
 
 def combine_32(msb: int, lsb: int) -> int:
-    """Slå ihop två 16-bitars ord (MSB på jämn adress) till ett signat 32-bitarsvärde."""
+    """Combine two 16-bit words (MSB at the even address) into a signed 32-bit value."""
     raw = ((msb & 0xFFFF) << 16) | (lsb & 0xFFFF)
     return raw - 0x100000000 if raw & 0x80000000 else raw
 
 
 def split_32(value: int) -> tuple[int, int]:
-    """Motsatsen till :func:`combine_32`. Returnerar (msb, lsb) som osignerade 16-bitarsord."""
+    """The inverse of :func:`combine_32`. Returns (msb, lsb) as unsigned 16-bit words."""
     raw = value & 0xFFFFFFFF
     return (raw >> 16) & 0xFFFF, raw & 0xFFFF
