@@ -25,7 +25,12 @@ pip install -e ".[tuning]"
 
 ## Run
 
+Run from the repo root (the directory containing `tuning_tool/`) -- `uvicorn`
+resolves `tuning_tool.app:app` as a Python module import, so it fails if you're
+anywhere else:
+
 ```
+cd simplexmotion   # or wherever you cloned it, e.g. /home/pi/simplexmotion-repo
 uvicorn tuning_tool.app:app --host 0.0.0.0 --port 8000
 ```
 
