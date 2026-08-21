@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SimplexMotion tuning tool</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+  <header>
+    <h1>SimplexMotion tuning tool</h1>
+    <div id="connection-status" class="status-pill disconnected">Disconnected</div>
+  </header>
+
+  <section id="connect-panel" class="panel">
+    <h2>Connect</h2>
+    <div class="row">
+      <label>Port <input id="port" value="/dev/serial0"></label>
+      <label>Baudrate <input id="baudrate" value="57600"></label>
+      <label>Parity <input id="parity" value="E" size="2"></label>
+      <button id="scan-btn">Scan bus</button>
+    </div>
+    <div class="row">
+      <label>Motor
+        <select id="motor-select"><option value="1">Address 1</option></select>
+      </label>
+      <button id="connect-btn">Connect</button>
+      <button id="disconnect-btn">Disconnect</button>
+    </div>
+    <div id="scan-results"></div>
+  </section>
+
+  <section id="live-panel" class="panel">
+    <h2>Live readouts</h2>
+    <div id="live-grid" class="grid"></div>
+    <canvas id="live-chart" height="90"></canvas>
+  </section>
+
+  <section id="params-panel" class="panel">
+    <h2>Parameters</h2>
+    <div class="row">
+      <button id="refresh-params-btn">Refresh</button>
+      <button id="apply-params-btn">Apply changes</button>
+      <button id="store-btn">Store (Mode 9)</button>
+      <button id="reload-btn">Reload (Mode 8)</button>
+    </div>
+    <div id="params-grid" class="grid"></div>
+  </section>
+
+  <section id="recorder-panel" class="panel">
+    <h2>Recorder</h2>
+    <div class="row" id="channel-selects"></div>
+    <div class="row">
+      <label>Period <input id="rec-period" type="number" value="3" min="0" max="65535"></label>
+      <label>Preceding <input id="rec-preceding" type="number" value="0" min="0" max="500"></label>
+      <label>Mode
+        <select id="rec-mode">
+          <option value="SINGLE">Single</option>
+          <option value="CONTINUOUS">Continuous</option>
+          <option value="TRIGGER">Trigger</option>
+        </select>
+      </label>
+      <button id="rec-start-btn">Start recording</button>
+      <span id="rec-status"></span>
+    </div>
+    <canvas id="rec-chart" height="80"></canvas>
+    <div class="row">
+      <label>FFT channel
+        <select id="fft-channel"></select>
+      </label>
+      <a id="csv-link" href="#" download="recording.csv">Download CSV</a>
+    </div>
+    <canvas id="fft-chart" height="80"></canvas>
+    <div id="fft-peaks"></div>
+    <table id="stats-table"><thead><tr><th>Channel</th><th>Mean</th><th>Min</th><th>Max</th><th>Stdev</th><th>Ripple %</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section id="profiles-panel" class="panel">
+    <h2>Parameter profiles</h2>
+    <div class="row">
+      <label>Name <input id="profile-name"></label>
+      <button id="profile-save-btn">Save current</button>
+      <select id="profile-select"></select>
+      <button id="profile-load-btn">Load</button>
+      <button id="profile-delete-btn">Delete</button>
+    </div>
+  </section>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

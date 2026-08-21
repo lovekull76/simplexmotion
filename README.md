@@ -134,7 +134,15 @@ dump).
 The manufacturer's SE010A manual (publicly distributed by SimplexMotion) is
 included in `docs/`.
 
+## Tuning tool
+
+`tuning_tool/` is a FastAPI + vanilla-JS web app for live parameter tuning,
+realtime plotting, and recorder/FFT diagnostics. See
+[`tuning_tool/README.md`](tuning_tool/README.md) for setup and usage.
+
 ## Status
 
-The core layers (Transport/Register/Motor API) are in place. The tuning tool
-(FastAPI backend, FFT analysis, recorder UI) hasn't been built yet.
+The core layers (Transport/Register/Motor API) and the tuning tool are in
+place. Not yet built: a shared-bus daemon so the tuning tool and another
+consumer (e.g. a running control process) can use the port at the same
+time -- for now, whichever needs the port must have exclusive access.
