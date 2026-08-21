@@ -39,6 +39,15 @@ def test_pid_round_trip(motor):
     assert motor.pid.kp == 750
 
 
+def test_status_masks_and_filter_round_trip(motor):
+    motor.status_filter = 5
+    assert motor.status_filter == 5
+    motor.mask_quickstop = 0b1010
+    assert motor.mask_quickstop == 0b1010
+    motor.mask_shutdown = 0b0110
+    assert motor.mask_shutdown == 0b0110
+
+
 def test_measurements_from_seeded_config(motor):
     assert motor.supply_voltage == pytest.approx(11.83, abs=0.01)
     assert motor.motor_torque == 11

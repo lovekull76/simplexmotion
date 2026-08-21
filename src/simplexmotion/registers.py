@@ -80,8 +80,7 @@ MASK_SHUTDOWN = 413
 ERROR = 414
 
 # ---------------------------------------------------------------------------
-# Recorder (headers only -- the data arrays themselves, 1000-4499, aren't
-# handled by the core API; that's a job for the tuning tool)
+# Recorder
 # ---------------------------------------------------------------------------
 
 REC_STATE = 899
@@ -90,6 +89,19 @@ REC_PERIOD = 901
 REC_PRECEDING = 902
 REC_OFFSET = 903
 REC_REGISTER = 904  # 4 registers, REC_REGISTER..REC_REGISTER+3
+
+REC_DATA1 = 999     # 500 registers each, circular buffers
+REC_DATA2 = 1999
+REC_DATA3 = 2999
+REC_DATA4 = 3999
+REC_DATA_LENGTH = 500
+
+# sample_interval_s = (RecPeriod + 1) / REC_BASE_RATE_HZ
+# RecPeriod = 0 (fastest) records all 500 samples in 0.25s, i.e. 2kHz base rate,
+# and RecPeriod counts additional regulator cycles to wait between samples.
+# Source: manual section 4.8 (Recorder). Cross-checked against tests/data/*rpm.csv,
+# whose 0.002s sample spacing corresponds to RecPeriod=3.
+REC_BASE_RATE_HZ = 2000
 
 # ---------------------------------------------------------------------------
 # 32-bit register pairs that need MSB/LSB handling (addresses per the manual,
@@ -141,6 +153,8 @@ _STATUS_BITS = {
     "user2": 15,
 }
 
+STATUS_BIT_NAMES = tuple(_STATUS_BITS)
+
 
 class Status:
     """Decoded view over a Status/StatusLatched register value."""
@@ -188,6 +202,14 @@ def raw_to_rpm_per_s(raw: int) -> float:
 
 def rpm_per_s_to_raw(rpm_per_s: float) -> int:
     return round(rpm_per_s * ACC_SCALE)
+
+
+def rec_period_to_interval_s(rec_period: int) -> float:
+    return (rec_period + 1) / REC_BASE_RATE_HZ
+
+
+def interval_s_to_rec_period(interval_s: float) -> int:
+    return round(interval_s * REC_BASE_RATE_HZ) - 1
 
 
 def to_signed16(raw: int) -> int:

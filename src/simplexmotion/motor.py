@@ -263,6 +263,30 @@ class Motor:
     def status_latched(self) -> Status:
         return Status(self._read(regs.STATUS_LATCHED, signed=False))
 
+    @property
+    def status_filter(self) -> int:
+        return self._read(regs.STATUS_FILTER, signed=False)
+
+    @status_filter.setter
+    def status_filter(self, value: int) -> None:
+        self._write(regs.STATUS_FILTER, value)
+
+    @property
+    def mask_quickstop(self) -> int:
+        return self._read(regs.MASK_QUICKSTOP, signed=False)
+
+    @mask_quickstop.setter
+    def mask_quickstop(self, value: int) -> None:
+        self._write(regs.MASK_QUICKSTOP, value)
+
+    @property
+    def mask_shutdown(self) -> int:
+        return self._read(regs.MASK_SHUTDOWN, signed=False)
+
+    @mask_shutdown.setter
+    def mask_shutdown(self, value: int) -> None:
+        self._write(regs.MASK_SHUTDOWN, value)
+
     # -- Non-volatile memory -----------------------------------------------------
 
     def store(self) -> None:
