@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "simplexmotion"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python library for SimplexMotion SE010A servo motors over Modbus RTU"
 readme = "README.md"
 license = { text = "MIT" }
